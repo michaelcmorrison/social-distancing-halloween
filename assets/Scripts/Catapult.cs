@@ -1,5 +1,4 @@
-﻿using System;
-using Unity.Mathematics;
+﻿using Unity.Mathematics;
 using UnityEngine;
 
 public class Catapult : MonoBehaviour
@@ -9,10 +8,13 @@ public class Catapult : MonoBehaviour
     public float power;
     public Sprite loaded;
     public Sprite launched;
+    public SpriteRenderer ammoSprite;
+    [HideInInspector] public bool isLoaded;
     private Vector2 Direction => _catapultAim.GetDirection();
     private bool CanFire => Time.time > _shotRefresh;
     private float _shotRefresh;
-    
+
+    private AmmoLoader _loader;
     private CatapultAim _catapultAim;
     private SpriteRenderer _spriteRenderer;
 
@@ -20,15 +22,16 @@ public class Catapult : MonoBehaviour
     {
         _catapultAim = GetComponent<CatapultAim>();
         _spriteRenderer = GetComponent<SpriteRenderer>();
+        _loader = GetComponent<AmmoLoader>();
     }
 
     private void Update()
     {
-        if (CanFire)
+        if (CanFire && !isLoaded)
         {
-            _spriteRenderer.sprite = loaded;
+            Load(_loader.GetRandomAmmunition());
         }
-        
+
         if (Input.GetKeyDown(KeyCode.Space) && CanFire)
         {
             Launch();
@@ -37,9 +40,21 @@ public class Catapult : MonoBehaviour
 
     private void Launch()
     {
-        _shotRefresh = Time.time + fireRate;
+        isLoaded = false;
         _spriteRenderer.sprite = launched;
+        ammoSprite.enabled = false;
+        _shotRefresh = Time.time + fireRate;
         var ammoCopy = Instantiate(ammo, transform.position, quaternion.identity);
         ammoCopy.AddForce(Direction * power);
+    }
+
+    private void Load(Rigidbody2D ammunition)
+    {
+        isLoaded = true;
+        _spriteRenderer.sprite = loaded;
+        ammo = ammunition;
+        var sprite = ammunition.GetComponent<SpriteRenderer>().sprite;
+        ammoSprite.enabled = true;
+        ammoSprite.sprite = sprite;
     }
 }

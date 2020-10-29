@@ -1,17 +1,9 @@
-﻿using System;
-using UnityEngine;
-using UnityEngine.Events;
+﻿using UnityEngine;
 
 public class Kid : Person
 {
-    public float runSpeed;
     public float knockbackSpeed;
     public KidState state;
-    
-    [Serializable]
-    public class UnityIntEvent : UnityEvent<int> {}
-    public UnityIntEvent kidHitWall;
-    public HitChain hitChain;
     
     private Vector2 _runDirection;
 
@@ -31,6 +23,16 @@ public class Kid : Person
     {
         _rigidbody2D = GetComponent<Rigidbody2D>();
         _animator = GetComponent<Animator>();
+    }
+
+    private void OnEnable()
+    {
+        Spawner.Kids.Add(this);
+    }
+
+    private void OnDisable()
+    {
+        Spawner.Kids.Remove(this);
     }
 
     private void Start()
@@ -59,41 +61,41 @@ public class Kid : Person
 
     private void OnCollisionEnter2D(Collision2D other)
     {
-        Debug.LogFormat("{0} hit {1}", gameObject.name, other.gameObject.name);
-        
         if (other.gameObject.CompareTag("Ammunition"))
         {
-            hitChain = new HitChain(this);
             state = KidState.Launched;
         }
         else if (other.gameObject.CompareTag("Kid"))
         {
             var otherKid = other.gameObject.GetComponent<Kid>();
 
-            if (otherKid.hitChain != null)
+            if (otherKid.state != KidState.Launched)
             {
-                hitChain = new HitChain(otherKid.hitChain.kids, this);
+                _runDirection = ChooseRandomDirection();
             }
-            
-            otherKid.state = KidState.Launched;
+            else
+            {
+                state = KidState.Launched;
+            }
         }
-        else if (other.gameObject.CompareTag("Wall")) 
+        else if (other.gameObject.CompareTag("Wall"))
         {
-            if (state == KidState.Launched)
+            switch (state)
             {
-                kidHitWall.Invoke(hitChain.kids.Count);
-                Destroy(gameObject);    
-            }
-            else if (state == KidState.Running)
-            {
-                _runDirection = -_runDirection;
+                case KidState.Launched:
+                    GameManager.Instance.AddScore();
+                    Destroy(gameObject);
+                    break;
+                case KidState.Running:
+                    _runDirection = -_runDirection;
+                    break;
             }
         }
     }
     
     private void Run()
     {
-        _rigidbody2D.MovePosition(_rigidbody2D.position + _runDirection * (runSpeed * Time.fixedDeltaTime));
+        _rigidbody2D.MovePosition(_rigidbody2D.position + _runDirection * (moveSpeed * Time.fixedDeltaTime));
     }
 
     private void FlyBackwards()

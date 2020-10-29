@@ -44,8 +44,17 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
+  - name: Background
+    uniqueID: 3939754783
+    locked: 0
+  - name: Catapult
+    uniqueID: 1309122377
+    locked: 0
   - name: Kids
     uniqueID: 180391195
+    locked: 0
+  - name: Ammo
+    uniqueID: 288758575
     locked: 0
   - name: Parents
     uniqueID: 3398046233

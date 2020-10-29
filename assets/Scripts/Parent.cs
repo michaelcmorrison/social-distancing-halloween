@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class Parent : Person
 {
-    public float walkSpeed;
     public ParentState state;
 
     private Vector2 _walkDirection;
@@ -30,6 +27,16 @@ public class Parent : Person
         _animator = GetComponent<Animator>();
     }
 
+    private void OnEnable()
+    {
+        Spawner.Parents.Add(this);
+    }
+
+    private void OnDisable()
+    {
+        Spawner.Parents.Remove(this);
+    }
+    
     private void Start()
     {
         _walkDirection = ChooseRandomDirection();
@@ -66,7 +73,7 @@ public class Parent : Person
 
     private void Walk()
     {
-        _rigidbody2D.MovePosition(_rigidbody2D.position + _walkDirection * (walkSpeed * Time.fixedDeltaTime));
+        _rigidbody2D.MovePosition(_rigidbody2D.position + _walkDirection * (moveSpeed * Time.fixedDeltaTime));
     }
 
     private void OnCollisionEnter2D(Collision2D other)
